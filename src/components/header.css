@@ -1,0 +1,25 @@
+/* header.css */
+
+/* Remove bullets and padding/margin for the list */
+.nav-list {
+    list-style: none;
+    display: flex; /* Makes the list horizontal */
+    gap: 20px; /* Adds spacing between items */
+    margin: 0;
+    padding: 0;
+  }
+  
+  /* Style the links */
+  .nav-list li a {
+    text-decoration: none; /* Remove underline from links */
+    color: #000; /* Default link color */
+    font-size: 18px; /* Adjust font size */
+    font-weight: bold;
+  }
+  
+  /* Add hover effect */
+  .nav-list li a:hover {
+    color: #007BFF; /* Change color on hover */
+    text-decoration: underline;
+  }
+  
