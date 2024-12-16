@@ -5,6 +5,8 @@ import Footer from './components/footer';
 import Home from './pages/home';
 import Experiences from './pages/experiences';
 import Blog from './pages/blog';
+import './app.css';
+
 
 function App() {
   return (
