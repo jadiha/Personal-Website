@@ -3,6 +3,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import Image from 'next/image';
+import PixelSky from '@/components/PixelSky';
+import WelcomePhoto from '@/components/WelcomePhoto';
+import RotatingWords from '@/components/RotatingWords';
+import PixelCat from '@/components/PixelCat';
+import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
+import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
 interface CommandHistory {
   command: string;
@@ -20,7 +26,9 @@ const COMMANDS = [
   'clear',
   'download',
   'socials',
-  'gallery'
+  'gallery',
+  'pet',
+  'meow'
 ];
 
 const ASCII_ART = `
@@ -44,152 +52,114 @@ const GALLERY_IMAGES = [
 ];
 
 
+const CHIPS: [string, string][] = [
+  ['about', '👋'],
+  ['experience', '💼'],
+  ['projects', '🚀'],
+  ['skills', '💫'],
+  ['socials', '📬'],
+  ['download', '📄'],
+  ['clear', '🧹'],
+];
+
 export default function Home() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<CommandHistory[]>([]);
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [scrollProgress, setScrollProgress] = useState(0);
   const contentContainerRef = useRef<HTMLDivElement>(null);
-  const skyCanvasRef = useRef<HTMLCanvasElement>(null);
-  const targetProgressRef = useRef(0);
-  const rafRef = useRef<number>(0);
+  const [bursts, setBursts] = useState<number[]>([]);
+  const welcomeRef = useRef<HTMLElement>(null);
+  const galleryRef = useRef<HTMLElement>(null);
+  const galleryTrackRef = useRef<HTMLDivElement>(null);
+  const terminalRef = useRef<HTMLElement>(null);
+  const progressRef = useRef(0);
 
-  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
-  const ramp = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
-
-  // Scroll-driven visibility
-  const welcomeOpacity = 1 - ramp(scrollProgress, 0, 22);
-  const galleryDone = scrollProgress > 65;
-
-  // keep scrolling: fades in 63→68, fades out 72→76
-  const keepScrollingOpacity = ramp(scrollProgress, 63, 68) * (1 - ramp(scrollProgress, 72, 76));
-
-  // Terminal: zooms in 72→98
-  const terminalProgress = ramp(scrollProgress, 72, 98);
-  const terminalScale = 0.15 + terminalProgress * 0.85;
-  const terminalOpacity = ramp(scrollProgress, 72, 80);
-  const terminalVisible = scrollProgress > 72;
-
-
+  // Scroll-driven scenes. Written straight to the DOM every frame so scrolling never
+  // re-renders the page. Timeline over scroll progress 0–100:
+  //   0–22   welcome floats up and fades
+  //   10–60  photos glide across and settle with the last one centred
+  //   56–86  photos lift away while the terminal rises from the meadow in lockstep
   useEffect(() => {
+    const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+    const ramp = (v: number, start: number, end: number) => clamp((v - start) / (end - start), 0, 1);
+    const easeInOut = (v: number) => v * v * (3 - 2 * v);
+
+    let travel = 0;
+    const measure = () => {
+      const track = galleryTrackRef.current;
+      const last = track?.lastElementChild as HTMLElement | null;
+      if (!track || !last) return;
+      // Track starts one viewport to the right; stop when the last card is centred
+      travel = window.innerWidth / 2 + last.offsetLeft + last.offsetWidth / 2;
+    };
+
+    let target = 0;
+    let current = -1;
     const handleScroll = () => {
-      const scrolled = window.scrollY;
-      const windowHeight = window.innerHeight;
-      targetProgressRef.current = (scrolled / (windowHeight * 2)) * 100;
+      target = (window.scrollY / (window.innerHeight * 3)) * 100;
     };
 
-    let current = 0;
+    const apply = (p: number) => {
+      const welcome = welcomeRef.current;
+      const gallery = galleryRef.current;
+      const track = galleryTrackRef.current;
+      const terminal = terminalRef.current;
+      if (!welcome || !gallery || !track || !terminal) return;
+
+      const welcomeExit = ramp(p, 0, 22);
+      welcome.style.opacity = String(1 - welcomeExit);
+      welcome.style.transform = `translateY(${-welcomeExit * 90}px)`;
+      welcome.style.visibility = welcomeExit >= 1 ? 'hidden' : 'visible';
+
+      const glide = easeInOut(ramp(p, 10, 60));
+      const lift = easeInOut(ramp(p, 56, 86));
+      gallery.style.opacity = String(ramp(p, 8, 15));
+      gallery.style.transform = `translateY(${-lift * 100}vh)`;
+      gallery.style.visibility = p < 8 || lift >= 1 ? 'hidden' : 'visible';
+      track.style.transform = `translateX(${-glide * travel}px)`;
+
+      terminal.style.transform = `translateY(${(1 - lift) * 100}vh)`;
+      terminal.style.visibility = lift <= 0 ? 'hidden' : 'visible';
+      terminal.style.pointerEvents = lift > 0.97 ? 'auto' : 'none';
+    };
+
+    let raf = 0;
     const animate = () => {
-      const diff = targetProgressRef.current - current;
-      current += diff * 0.18;
-      if (Math.abs(diff) > 0.02) {
-        setScrollProgress(current);
+      const diff = target - current;
+      if (Math.abs(diff) > 0.01) {
+        current = current < 0 ? target : current + diff * 0.12;
+        progressRef.current = current;
+        apply(current);
       }
-      rafRef.current = requestAnimationFrame(animate);
+      raf = requestAnimationFrame(animate);
     };
 
+    measure();
+    handleScroll();
     window.addEventListener('scroll', handleScroll, { passive: true });
-    rafRef.current = requestAnimationFrame(animate);
+    const onResize = () => { measure(); apply(current); };
+    window.addEventListener('resize', onResize);
+    // Card sizes settle once fonts and images load, so re-measure when the track changes
+    const observer = new ResizeObserver(onResize);
+    if (galleryTrackRef.current) observer.observe(galleryTrackRef.current);
+    raf = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('scroll', handleScroll);
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      window.removeEventListener('resize', onResize);
+      observer.disconnect();
+      cancelAnimationFrame(raf);
     };
   }, []);
 
-  // Pixel sky canvas
+  // Scroll the terminal so the newest output starts at the top, ready to read down
   useEffect(() => {
-    const canvas = skyCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const W = 320;
-
-    // Sky bands top → horizon
-    const bands: [number, number, string][] = [
-      [0,   50, '#4AAEDE'],
-      [50,  40, '#6EC6E8'],
-      [90,  35, '#96D9F0'],
-      [125, 19, '#C0EAF8'],
-    ];
-    bands.forEach(([y, h, color]) => {
-      ctx.fillStyle = color;
-      ctx.fillRect(0, y, W, h);
-    });
-
-    // Ground
-    ctx.fillStyle = '#3A9A3A';
-    ctx.fillRect(0, 144, W, 36);
-    ctx.fillStyle = '#5DBF5D';
-    ctx.fillRect(0, 144, W, 5);
-    ctx.fillStyle = '#80D480';
-    ctx.fillRect(0, 142, W, 3);
-
-    // Cloud helper — chunky pixel blobs
-    const cloud = (x: number, y: number, s: number) => {
-      s = Math.round(s);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(x + s*2, y,       s*4, s*2);
-      ctx.fillRect(x + s,   y + s*2, s*6, s*2);
-      ctx.fillRect(x,       y + s*3, s*8, s*3);
-      ctx.fillStyle = '#CCE8F5';
-      ctx.fillRect(x,       y + s*5, s*8, s);
-    };
-
-    // Wrap helper (handles negative offsets cleanly)
-    const wrap = (base: number, speed: number, margin: number) => {
-      const total = W + margin * 2;
-      const moved = base - (scrollProgress / 100) * 200 * speed;
-      return ((moved % total) + total) % total - margin;
-    };
-
-    // Far clouds (small, slow)
-    cloud(wrap(60,  0.15, 55), 18, 2.5);
-    cloud(wrap(210, 0.15, 55), 8,  2);
-    // Mid clouds
-    cloud(wrap(130, 0.35, 65), 5,  3);
-    cloud(wrap(280, 0.35, 65), 22, 2.5);
-    // Near clouds (large, fast)
-    cloud(wrap(40,  0.7,  80), 10, 4);
-    cloud(wrap(240, 0.7,  80), 3,  3.5);
-
-    // Pixel flowers in the grass
-    const flowerColors = ['#FF9CAE', '#FFE566', '#FFFFFF', '#FFD9E4', '#FFCBA8'];
-    [12, 38, 60, 85, 110, 135, 158, 185, 210, 238, 262, 288, 308].forEach((fx, i) => {
-      const fy = 139;
-      ctx.fillStyle = '#FFEE88';
-      ctx.fillRect(fx, fy, 2, 2);
-      ctx.fillStyle = flowerColors[i % flowerColors.length];
-      ctx.fillRect(fx - 2, fy,     2, 2);
-      ctx.fillRect(fx + 2, fy,     2, 2);
-      ctx.fillRect(fx,     fy - 2, 2, 2);
-      ctx.fillRect(fx,     fy + 2, 2, 2);
-    });
-
-    // Sun (top-right)
-    ctx.fillStyle = '#FFE566';
-    ctx.fillRect(W - 34, 5, 20, 20);
-    ctx.fillStyle = '#FFD700';
-    ctx.fillRect(W - 32, 7, 16, 16);
-    ctx.fillStyle = '#FFE566';
-    // Rays
-    ctx.fillRect(W - 27, 1,  6, 3);
-    ctx.fillRect(W - 27, 26, 6, 3);
-    ctx.fillRect(W - 38, 13, 3, 6);
-    ctx.fillRect(W - 15, 13, 3, 6);
-  }, [scrollProgress]);
-
-  // Add auto-scroll effect when history changes
-  useEffect(() => {
-    const contentContainer = contentContainerRef.current;
-    if (contentContainer) {
-      const terminalContent = contentContainer.querySelector('.terminal-content');
-      if (terminalContent) {
-        terminalContent.scrollTop = terminalContent.scrollHeight;
-      }
-    }
+    const terminalContent = contentContainerRef.current?.querySelector('.terminal-content');
+    const latest = terminalContent?.lastElementChild;
+    if (!terminalContent || !latest || history.length < 2) return;
+    const offset = latest.getBoundingClientRect().top - terminalContent.getBoundingClientRect().top;
+    terminalContent.scrollTo({ top: terminalContent.scrollTop + offset - 4, behavior: 'smooth' });
   }, [history]);
 
   const handleCommand = (command: string) => {
@@ -256,31 +226,16 @@ export default function Home() {
           <div className="command-output">
             <div className="space-y-3">
               <p className="text-pink-500 font-medium text-base">👋🏽 Hi there! I&apos;m Jadiha <span className="text-gray-500 font-normal text-sm">(ja-thee-ha)</span></p>
-              <p className="text-gray-600">
-                I&apos;m a Systems Design Engineering student at the University of Waterloo who loves building human-centred products grounded in thoughtful UX, strong engineering principles, and real-world impact.
-              </p>
-              <p className="text-gray-600">
-                I thrive in roles where I can take end-to-end ownership, collaborate across disciplines, use product intuition, and ship solutions that genuinely improve people&apos;s lives — whether it&apos;s in fintech, neurotech, or robotics!
-              </p>
-              <p className="text-gray-600">
-                I think the best tech makes the world a little more human. I&apos;m drawn to building things that actually help people, especially around mental health and community.
-              </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                <div>
-                  <p className="text-pink-500 font-medium">🎯 Interests</p>
-                  <p className="text-gray-600 ml-4">• Fintech & Neurotech</p>
-                  <p className="text-gray-600 ml-4">• Mental Health Tech</p>
-                  <p className="text-gray-600 ml-4">• Robotics & Community</p>
-                </div>
-                <div>
-                  <p className="text-pink-500 font-medium">💼 Where I&apos;ve been</p>
-                  <p className="text-gray-600 ml-4">• Wealthsimple (current)</p>
-                  <p className="text-gray-600 ml-4">• Amazon</p>
-                  <p className="text-gray-600 ml-4">• Real Life Robotics</p>
-                </div>
+              <p className="text-gray-600">{ABOUT.intro}</p>
+              <p className="text-gray-600">{ABOUT.passionsLead}</p>
+              <div className="space-y-1">
+                {ABOUT.passions.map(item => (
+                  <p key={item.label} className="text-gray-600 ml-4">{item.icon} <span className="text-pink-500">{item.label}</span>: {item.text}</p>
+                ))}
               </div>
-              <p className="text-pink-500 font-medium">🌿 Actively seeking Technical Product & Data Science roles for Summer & Fall 2026!</p>
-              <p className="text-gray-600 text-sm">📧 jadiha.arul@gmail.com</p>
+              <p className="text-gray-600"><span className="text-pink-500 font-medium">💼 Where I&apos;ve been:</span> {ABOUT.beenAt}</p>
+              <p className="text-pink-500 font-medium">🌿 {ABOUT.seeking}</p>
+              <p className="text-gray-600 text-sm">📧 {ABOUT.email}</p>
             </div>
           </div>
         );
@@ -290,35 +245,13 @@ export default function Home() {
         output = (
           <div className="command-output">
             <div className="space-y-4">
-              <div>
-                <p className="text-pink-500 font-medium">💳 Wealthsimple | Software Engineer Intern</p>
-                <p className="text-gray-500 text-sm ml-4">May 2025 - Present · Toronto</p>
-                <p className="text-gray-600 ml-4">Prototyping new features for the 2% cashback card and shaping what the next generation of Wealthsimple cards could look like. Also implemented TFSA account linking for margin trading, contributing to $60K daily revenue.</p>
-              </div>
-
-              <div>
-                <p className="text-pink-500 font-medium">🤖 Real Life Robotics | Full Stack Developer</p>
-                <p className="text-gray-500 text-sm ml-4">Sep 2024 - Dec 2024 · Toronto</p>
-                <p className="text-gray-600 ml-4">Led software development and ran live pilots for an autonomous food delivery robot at the Toronto Zoo — putting real robots in front of real people and making it work.</p>
-              </div>
-
-              <div>
-                <p className="text-pink-500 font-medium">☁️ MPAC | Cloud Infrastructure Analyst</p>
-                <p className="text-gray-500 text-sm ml-4">Jan 2024 - Apr 2024 · Pickering</p>
-                <p className="text-gray-600 ml-4">• Managed cloud infrastructure operations using Python Boto3 and React.js, processing $10K+ in data assets</p>
-              </div>
-
-              <div>
-                <p className="text-pink-500 font-medium">📊 Amazon | Software Development Engineer Intern</p>
-                <p className="text-gray-500 text-sm ml-4">May 2023 - Aug 2023 · Vancouver</p>
-                <p className="text-gray-600 ml-4">Built an internal tool that gave an entire team visibility into their cron jobs in one place — turning something messy and scattered into something clear and manageable. Improved system uptime by 65% for 70,000+ employees.</p>
-              </div>
-
-              <div>
-                <p className="text-pink-500 font-medium">🏦 Home Trust Company | QA Automation Analyst</p>
-                <p className="text-gray-500 text-sm ml-4">Jan 2023 - Apr 2023 · Toronto</p>
-                <p className="text-gray-600 ml-4">• Automated digital banking QA processes using CodeceptJS and Postman API, reducing testing time by 40%</p>
-              </div>
+              {EXPERIENCE.map(r => (
+                <div key={r.org + r.role}>
+                  <p className="text-pink-500 font-medium">{r.icon} {r.org} | {r.role}</p>
+                  <p className="text-gray-500 text-sm ml-4">{r.when}</p>
+                  <p className="text-gray-600 ml-4">{r.body}</p>
+                </div>
+              ))}
             </div>
           </div>
         );
@@ -358,16 +291,12 @@ export default function Home() {
 
       case 'download':
         output = (
-          <div className="mb-2 command-output">
-            <p className="text-gray-600 mb-3">Click the link below to download my resume:</p>
-            <a
-              href="/resume.pdf"
-              download="Jadiha_Aruleswaran_Resume.pdf"
-              className="inline-block bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
+          <div className="command-output resume-download">
+            <p className="text-gray-600">Click the button below to download my resume:</p>
+            <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf" className="resume-button">
               📄 Download Resume (PDF)
             </a>
-            <p className="text-gray-500 text-sm mt-2">If the download doesn&apos;t start automatically, right-click the link and select &quot;Save as&quot;</p>
+            <p className="text-gray-500 text-sm">If the download doesn&apos;t start automatically, right-click the button and select &quot;Save as&quot;.</p>
           </div>
         );
         break;
@@ -416,6 +345,17 @@ export default function Home() {
         );
         break;
 
+      case 'pet':
+      case 'cat':
+      case 'meow':
+        window.dispatchEvent(new Event('pet-cat'));
+        output = (
+          <div className="command-output">
+            <p className="text-gray-600">🐈‍⬛ The cat on top of the terminal purrs happily. Click it anytime for more pets!</p>
+          </div>
+        );
+        break;
+
       case 'clear':
         setHistory(prev => prev.slice(0, 1));
         return;
@@ -430,6 +370,14 @@ export default function Home() {
     }
 
     setHistory(prev => [...prev, { command, output }]);
+  };
+
+  // Run a command with a little puff of sparkles from the input
+  const runCommand = (command: string) => {
+    handleCommand(command);
+    const id = Date.now() + Math.random();
+    setBursts(prev => [...prev, id]);
+    setTimeout(() => setBursts(prev => prev.filter(b => b !== id)), 1300);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -457,7 +405,7 @@ export default function Home() {
         setInput(matchingCommands[0]);
       }
     } else if (e.key === 'Enter') {
-      handleCommand(input);
+      runCommand(input);
       setInput('');
     }
   };
@@ -469,187 +417,106 @@ export default function Home() {
 
   return (
     <main className="relative">
-      {/* Pixel sky background */}
-      <canvas
-        ref={skyCanvasRef}
-        width={320}
-        height={180}
-        style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          zIndex: 1,
-          imageRendering: 'pixelated',
-        }}
-      />
+      {/* Golden-hour pixel world */}
+      <PixelSky progressRef={progressRef} />
 
       {/* Welcome Section */}
       <section
+        ref={welcomeRef}
         className="welcome-section min-h-screen flex items-center justify-center fixed top-0 left-0 w-full z-[40]"
-        style={{
-          opacity: welcomeOpacity,
-          visibility: scrollProgress > 20 ? 'hidden' : 'visible'
-        }}
       >
-        <div className="text-center p-8 relative">
+        <div className="welcome-layout">
           <motion.div
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-              duration: 1.5
-            }}
-            className="mb-8 relative"
+            initial={{ scale: 0, rotate: -8 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: "spring", stiffness: 200, damping: 18 }}
           >
-            <div className="w-40 h-40 mx-auto relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-200 to-purple-200 rounded-full animate-pulse"></div>
-              <Image
-                src="/avatars/avatar.png"
-                alt="Cute waving avatar"
-                width={160}
-                height={160}
-                className="relative z-10 w-full h-full object-contain drop-shadow-lg"
-              />
-              <motion.div
-                animate={{
-                  rotate: [0, 20, 0],
-                }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2,
-                  ease: "easeInOut"
-                }}
-                className="absolute top-0 right-0 origin-bottom-left"
-              >
-                <span className="text-4xl">👋🏽</span>
-              </motion.div>
-            </div>
+            <WelcomePhoto width={260} />
           </motion.div>
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
-            className="text-2xl sm:text-4xl md:text-5xl mb-6"
-            style={{
-              fontFamily: 'var(--font-press-start)',
-              lineHeight: 1.8,
-              color: '#FFFFFF',
-              textShadow: '0 0 10px rgba(255,179,198,0.9), 0 0 25px rgba(255,156,174,0.7), 0 0 60px rgba(255,100,150,0.5)',
-            }}
-          >
-            Jadiha Aruleswaran
-          </motion.h1>
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.7 }}
-            className="text-sm sm:text-base mb-12"
-            style={{
-              fontFamily: 'ui-monospace, SF Mono, Menlo, monospace',
-              letterSpacing: '0.05em',
-              color: '#FFFFFF',
-              textShadow: '0 0 8px rgba(255,255,255,0.9), 0 0 20px rgba(255,255,255,0.6), 0 0 40px rgba(255,200,220,0.4)',
-            }}
-          >
-            scroll down to begin the journey
-          </motion.p>
-          <motion.div
-            animate={{ y: [0, -10, 0] }}
-            transition={{
-              repeat: Infinity,
-              duration: 2,
-              ease: "easeInOut"
-            }}
-            className="text-3xl text-pink-400"
-          >
-            ↓
-          </motion.div>
+          <div className="welcome-copy">
+            <motion.h1
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+              className="welcome-name"
+            >
+              Jadiha<br />Aruleswaran
+            </motion.h1>
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.7 }}
+              className="welcome-identity"
+            >
+              I&apos;m a <RotatingWords words={IDENTITIES} />
+            </motion.p>
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 1 }}
+              className="welcome-tagline"
+            >
+              {TAGLINE}
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.4 }}
+              className="welcome-hint"
+            >
+              scroll to begin the journey ↓
+            </motion.p>
+          </div>
         </div>
       </section>
 
       {/* Gallery Section */}
       <section
+        ref={galleryRef}
         className="gallery-section"
-        style={{
-          opacity: ramp(scrollProgress, 15, 30) * (1 - ramp(scrollProgress, 58, 66)),
-          visibility: galleryDone ? 'hidden' : 'visible'
-        }}
+        style={{ opacity: 0, visibility: 'hidden' }}
       >
         <div className="gallery-container">
           <div
+            ref={galleryTrackRef}
             className="gallery-track"
-            style={{
-              transform: `translateX(${Math.min(
-                Math.max(
-                  -((scrollProgress - 20) / 48) * ((GALLERY_IMAGES.length + 4) * 520),
-                  -((GALLERY_IMAGES.length + 4) * 520)
-                ),
-                0
-              )}px)`
-            }}
           >
             {GALLERY_IMAGES.map((image, index) => (
               <div
                 key={index}
-                className="gallery-item group"
+                className="polaroid-float"
+                style={{ animationDelay: `${-index * 0.7}s` }}
               >
-                <Image
-                  src={`/gallery/${image.src}`}
-                  alt={image.title}
-                  width={500}
-                  height={300}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                />
-                <div className="absolute bottom-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
-                  <span style={{
-                    fontSize: '0.6rem',
-                    fontFamily: 'var(--font-press-start)',
-                    color: '#fff',
-                    textShadow: '0 1px 4px rgba(0,0,0,0.5)',
-                    letterSpacing: '0.03em',
-                  }}>{image.title}</span>
-                </div>
+                <figure
+                  className="gallery-item polaroid"
+                  style={{ transform: `rotate(${index % 2 === 0 ? -2 : 2}deg)` }}
+                >
+                  <div className="polaroid-photo">
+                    <Image
+                      src={`/gallery/${image.src}`}
+                      alt={image.title}
+                      width={500}
+                      height={360}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                  </div>
+                  <figcaption className="polaroid-caption">{image.title}</figcaption>
+                </figure>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Keep scrolling hint */}
-      <div
-        style={{
-          position: 'fixed',
-          top: '42%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          zIndex: 60,
-          opacity: keepScrollingOpacity,
-          pointerEvents: 'none',
-          textAlign: 'center',
-          color: '#FFFFFF',
-          fontFamily: 'var(--font-press-start)',
-          fontSize: '0.8rem',
-          whiteSpace: 'nowrap',
-          textShadow: '0 0 10px rgba(255,255,255,0.9), 0 0 25px rgba(255,255,255,0.6), 0 0 50px rgba(255,200,220,0.4)',
-          animation: 'pixel-pulse 1.5s ease-in-out infinite',
-        }}
-      >
-        keep scrolling &gt;&gt;
-      </div>
-
       {/* Terminal Section */}
       <section
+        ref={terminalRef}
         className="terminal-section min-h-screen z-[50] flex items-center justify-center"
         style={{
-          opacity: terminalOpacity,
-          transform: `scale(${terminalScale})`,
-          transformOrigin: 'center center',
-          pointerEvents: terminalVisible ? 'auto' : 'none',
+          transform: 'translateY(100vh)',
+          visibility: 'hidden',
+          pointerEvents: 'none',
           position: 'fixed',
           top: 0,
           left: 0,
@@ -657,13 +524,16 @@ export default function Home() {
         }}
       >
         <div className="container mx-auto px-4">
+          <div className="terminal-wrap">
+          <PixelCat />
           <div className="terminal-window">
+            <TerminalTitleBar />
             <div className="text-center">
               <pre className="ascii-art">
                 {ASCII_ART}
               </pre>
-              <p className="text-gray-700 text-sm mb-2">
-                Type <span className="text-pink-500 font-semibold">help</span> to get started
+              <p className="terminal-subtitle">
+                type a command or tap a spell below ✿
               </p>
             </div>
 
@@ -672,11 +542,7 @@ export default function Home() {
                 {history.map((item, index) => (
                   <div key={index} className="mb-4">
                     <div className="terminal-prompt text-sm">
-                      <span>visitor</span>
-                      <span className="text-gray-400">@</span>
-                      <span>jadiha</span>
-                      <span className="text-gray-400">:</span>
-                      <span className="text-pink-500">~$</span>
+                      <Prompt />
                       <span className="ml-2 text-gray-700">{item.command}</span>
                     </div>
                     <div className="mt-1">
@@ -686,13 +552,17 @@ export default function Home() {
                 ))}
               </div>
 
+              <div className="command-chips">
+                {CHIPS.map(([cmd, icon]) => (
+                  <button key={cmd} type="button" className="command-chip" onClick={() => runCommand(cmd)}>
+                    <span aria-hidden="true">{icon}</span> {cmd}
+                  </button>
+                ))}
+              </div>
+
               <div className="terminal-input">
                 <div className="terminal-prompt text-sm">
-                  <span>visitor</span>
-                  <span className="text-gray-400">@</span>
-                  <span>jadiha</span>
-                  <span className="text-gray-400">:</span>
-                  <span className="text-pink-500">~$</span>
+                  <Prompt />
                   <input
                     type="text"
                     value={input}
@@ -701,16 +571,19 @@ export default function Home() {
                     className="ml-2 bg-transparent outline-none flex-1 text-sm"
                     autoFocus
                     placeholder="Type a command..."
+                    aria-label="Terminal command"
                   />
                 </div>
+                {bursts.map(id => <SparkleBurst key={id} />)}
               </div>
             </div>
+          </div>
           </div>
         </div>
       </section>
 
       {/* Spacer to control scroll range */}
-      <div style={{ height: `${Math.max(500, GALLERY_IMAGES.length * 70)}vh` }} />
+      <div style={{ height: '400vh' }} />
     </main>
   );
 }

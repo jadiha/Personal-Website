@@ -2,6 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import PixelSky from '@/components/PixelSky';
+import WelcomePhoto from '@/components/WelcomePhoto';
+import Reveal from '@/components/Reveal';
+import RotatingWords from '@/components/RotatingWords';
+import PixelCat from '@/components/PixelCat';
+import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
+import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
 interface CommandHistory {
   command: string;
@@ -24,69 +31,35 @@ export default function MobilePage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [showKeepScrolling, setShowKeepScrolling] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
-  const skyCanvasRef = useRef<HTMLCanvasElement>(null);
+  const progressRef = useRef(0);
+  const welcomeRef = useRef<HTMLDivElement>(null);
   const terminalContentRef = useRef<HTMLDivElement>(null);
   const lastItemRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
+  const [bursts, setBursts] = useState<number[]>([]);
 
-  // Draw static pixel sky — portrait orientation (180×320)
+  // Native scrolling stays in charge. Each frame we just read it to warm the sky
+  // and let the welcome drift up and fade as it leaves.
   useEffect(() => {
-    const canvas = skyCanvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    const W = 180, H = 320;
-
-    // Full-canvas ombre: deep blue → pale sky → warm horizon → grass
-    const skyGrad = ctx.createLinearGradient(0, 0, 0, H);
-    skyGrad.addColorStop(0,    '#4AAEDE');
-    skyGrad.addColorStop(0.30, '#6EC6E8');
-    skyGrad.addColorStop(0.55, '#96D9F0');
-    skyGrad.addColorStop(0.75, '#C0EAF8');
-    skyGrad.addColorStop(0.85, '#D8F0F8');
-    skyGrad.addColorStop(0.88, '#5DBF5D');
-    skyGrad.addColorStop(1.0,  '#3A9A3A');
-    ctx.fillStyle = skyGrad;
-    ctx.fillRect(0, 0, W, H);
-
-    // Bright grass highlight strip
-    ctx.fillStyle = '#80D480'; ctx.fillRect(0, H - 38, W, 3);
-
-    const cloud = (x: number, y: number, s: number) => {
-      s = Math.round(s);
-      ctx.fillStyle = '#FFFFFF';
-      ctx.fillRect(x + s*2, y,       s*4, s*2);
-      ctx.fillRect(x + s,   y + s*2, s*6, s*2);
-      ctx.fillRect(x,       y + s*3, s*8, s*3);
-      ctx.fillStyle = '#CCE8F5';
-      ctx.fillRect(x,       y + s*5, s*8, s);
+    let raf = 0;
+    let last = -1;
+    const tick = () => {
+      const y = window.scrollY;
+      if (y !== last) {
+        last = y;
+        const max = document.documentElement.scrollHeight - window.innerHeight;
+        progressRef.current = max > 0 ? (y / max) * 100 : 0;
+        const welcome = welcomeRef.current;
+        if (welcome) {
+          const exit = Math.min(1, y / (window.innerHeight * 0.75));
+          welcome.style.opacity = String(1 - exit);
+          welcome.style.transform = `translateY(${-y * 0.35}px)`;
+        }
+      }
+      raf = requestAnimationFrame(tick);
     };
-    // Spread clouds through the taller sky
-    cloud(10,  20, 2.5);
-    cloud(100, 10, 2);
-    cloud(50,  80, 3);
-    cloud(120, 60, 2);
-    cloud(20, 140, 2.5);
-    cloud(100,130, 2);
-
-    // Flowers along grass line
-    const flowerColors = ['#FF9CAE', '#FFE566', '#FFFFFF', '#FFD9E4', '#FFCBA8'];
-    [8, 22, 38, 55, 72, 90, 108, 125, 142, 158, 170].forEach((fx, i) => {
-      const fy = H - 42;
-      ctx.fillStyle = '#FFEE88'; ctx.fillRect(fx, fy, 2, 2);
-      ctx.fillStyle = flowerColors[i % flowerColors.length];
-      ctx.fillRect(fx-2, fy, 2, 2); ctx.fillRect(fx+2, fy, 2, 2);
-      ctx.fillRect(fx, fy-2, 2, 2); ctx.fillRect(fx, fy+2, 2, 2);
-    });
-
-    // Sun top-right
-    ctx.fillStyle = '#FFE566'; ctx.fillRect(W - 26, 8, 16, 16);
-    ctx.fillStyle = '#FFD700'; ctx.fillRect(W - 24, 10, 12, 12);
-    ctx.fillStyle = '#FFE566';
-    ctx.fillRect(W - 20, 4,  4, 3);
-    ctx.fillRect(W - 20, 25, 4, 3);
-    ctx.fillRect(W - 30, 14, 3, 4);
-    ctx.fillRect(W - 11, 14, 3, 4);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
   }, []);
 
   // Scroll within terminal to show top of new output — never scrolls the page
@@ -94,8 +67,8 @@ export default function MobilePage() {
     if (history.length > 1 && lastItemRef.current && terminalContentRef.current) {
       const container = terminalContentRef.current;
       const item = lastItemRef.current;
-      const offset = item.offsetTop - container.offsetTop;
-      container.scrollTo({ top: offset, behavior: 'smooth' });
+      const offset = item.getBoundingClientRect().top - container.getBoundingClientRect().top;
+      container.scrollTo({ top: container.scrollTop + offset - 4, behavior: 'smooth' });
     }
   }, [history]);
 
@@ -117,24 +90,16 @@ export default function MobilePage() {
           <div className="command-output">
             <div className="space-y-2">
               <p className="text-pink-500 font-medium">👋🏽 Hi! I&apos;m Jadiha <span className="text-gray-500 font-normal text-xs">(ja-thee-ha)</span></p>
-              <p className="text-gray-600 text-xs">Systems Design Engineering student at UWaterloo who loves building human-centred products with thoughtful UX and real-world impact.</p>
-              <p className="text-gray-600 text-xs">I thrive taking end-to-end ownership across fintech, neurotech, and robotics!</p>
-              <div className="grid grid-cols-1 gap-2 mt-1">
-                <div>
-                  <p className="text-pink-500 font-medium text-xs">🎯 Interests</p>
-                  <p className="text-gray-600 text-xs ml-3">• Fintech & Neurotech</p>
-                  <p className="text-gray-600 text-xs ml-3">• Mental Health Tech</p>
-                  <p className="text-gray-600 text-xs ml-3">• Robotics & Community</p>
-                </div>
-                <div>
-                  <p className="text-pink-500 font-medium text-xs">💼 Where I&apos;ve been</p>
-                  <p className="text-gray-600 text-xs ml-3">• Wealthsimple (current)</p>
-                  <p className="text-gray-600 text-xs ml-3">• Amazon</p>
-                  <p className="text-gray-600 text-xs ml-3">• Real Life Robotics</p>
-                </div>
+              <p className="text-gray-600 text-xs">{ABOUT.intro}</p>
+              <p className="text-gray-600 text-xs">{ABOUT.passionsLead}</p>
+              <div className="space-y-1">
+                {ABOUT.passions.map(item => (
+                  <p key={item.label} className="text-gray-600 text-xs ml-3">{item.icon} <span className="text-pink-500">{item.label}</span>: {item.text}</p>
+                ))}
               </div>
-              <p className="text-pink-500 font-medium text-xs">🌿 Seeking PM & Data roles Summer/Fall 2026!</p>
-              <p className="text-gray-500 text-xs">📧 jadiha.arul@gmail.com</p>
+              <p className="text-gray-600 text-xs"><span className="text-pink-500 font-medium">💼 Where I&apos;ve been:</span> {ABOUT.beenAt}</p>
+              <p className="text-pink-500 font-medium text-xs">🌿 {ABOUT.seeking}</p>
+              <p className="text-gray-500 text-xs">📧 {ABOUT.email}</p>
             </div>
           </div>
         );
@@ -144,17 +109,11 @@ export default function MobilePage() {
         output = (
           <div className="command-output">
             <div className="space-y-3">
-              {[
-                { icon: '💳', title: 'Wealthsimple', role: 'SWE Intern', date: 'May 2025 - Present', desc: 'Prototyping cashback card features and implemented TFSA account linking, contributing to $60K daily revenue.' },
-                { icon: '🤖', title: 'Real Life Robotics', role: 'Full Stack Dev', date: 'Sep–Dec 2024', desc: 'Led software dev for autonomous food delivery robot at the Toronto Zoo.' },
-                { icon: '☁️', title: 'MPAC', role: 'Cloud Infra Analyst', date: 'Jan–Apr 2024', desc: 'Managed cloud infra using Python Boto3 and React.js, processing $10K+ in data assets.' },
-                { icon: '📊', title: 'Amazon', role: 'SDE Intern', date: 'May–Aug 2023', desc: 'Built internal cron job dashboard. Improved system uptime 65% for 70,000+ employees.' },
-                { icon: '🏦', title: 'Home Trust', role: 'QA Automation', date: 'Jan–Apr 2023', desc: 'Automated QA processes reducing testing time by 40%.' },
-              ].map((job) => (
-                <div key={job.title}>
-                  <p className="text-pink-500 font-medium text-xs">{job.icon} {job.title} | {job.role}</p>
-                  <p className="text-gray-500 text-xs ml-3">{job.date}</p>
-                  <p className="text-gray-600 text-xs ml-3">{job.desc}</p>
+              {EXPERIENCE.map(job => (
+                <div key={job.org + job.role}>
+                  <p className="text-pink-500 font-medium text-xs">{job.icon} {job.org} | {job.role}</p>
+                  <p className="text-gray-500 text-xs ml-3">{job.when}</p>
+                  <p className="text-gray-600 text-xs ml-3">{job.body}</p>
                 </div>
               ))}
             </div>
@@ -219,11 +178,12 @@ export default function MobilePage() {
 
       case 'download':
         output = (
-          <div className="command-output">
-            <p className="text-gray-600 text-xs mb-2">Download my resume:</p>
-            <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf" className="inline-block bg-pink-500 text-white px-3 py-2 rounded-lg text-xs">
-              📄 Download Resume
+          <div className="command-output resume-download">
+            <p className="text-gray-600 text-xs">Tap below to download my resume:</p>
+            <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf" className="resume-button text-xs">
+              📄 Download Resume (PDF)
             </a>
+            <p className="text-gray-500 text-xs">If it opens instead of downloading, use your browser&apos;s share or save option.</p>
           </div>
         );
         break;
@@ -241,6 +201,14 @@ export default function MobilePage() {
     }
 
     setHistory(prev => [...prev, { command, output }]);
+  };
+
+  // Run a command with a little puff of sparkles over the buttons
+  const runCommand = (command: string) => {
+    handleCommand(command);
+    const id = Date.now() + Math.random();
+    setBursts(prev => [...prev, id]);
+    setTimeout(() => setBursts(prev => prev.filter(b => b !== id)), 1300);
   };
 
   // Detect landscape orientation
@@ -302,49 +270,23 @@ export default function MobilePage() {
 
   return (
     <main style={{ position: 'relative' }}>
-      {/* Fixed pixel sky */}
-      <canvas
-        ref={skyCanvasRef}
-        width={180}
-        height={320}
-        style={{
-          position: 'fixed', top: 0, left: 0,
-          width: '100dvw', height: '100dvh',
-          zIndex: 1,
-          imageRendering: 'pixelated',
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ...({ WebkitImageRendering: 'pixelated' } as any),
-        }}
-      />
+      {/* Golden-hour pixel world */}
+      <PixelSky progressRef={progressRef} portrait />
 
       {/* ── Section 1: Welcome ───────────────────────────────────── */}
       <section style={{
         height: '100dvh',
         minHeight: '100dvh',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
+        alignItems: 'center', justifyContent: 'flex-start',
         position: 'relative', zIndex: 10,
-        textAlign: 'center', padding: '2rem 1.5rem',
+        textAlign: 'center', padding: '9svh 1.5rem 2rem',
         overflow: 'hidden',
       }}>
-        {/* Avatar */}
-        <div style={{ width: 110, height: 110, margin: '0 auto 1.5rem', position: 'relative' }}>
-          <div style={{
-            position: 'absolute', inset: 0, borderRadius: '50%',
-            background: 'linear-gradient(135deg, #FFD9E4, #FFE4CC)',
-          }} />
-          <Image
-            src="/avatars/avatar.png" alt="Jadiha"
-            width={110} height={110}
-            style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'relative', zIndex: 1 }}
-          />
-          <span style={{
-            position: 'absolute', top: 0, right: 0,
-            fontSize: '1.8rem',
-            animation: 'wave 2s ease-in-out infinite',
-            transformOrigin: 'bottom left',
-            display: 'inline-block',
-          }}>👋🏽</span>
+        <div ref={welcomeRef} style={{ willChange: 'transform, opacity' }}>
+        {/* Welcome photo */}
+        <div style={{ marginBottom: '2rem' }}>
+          <WelcomePhoto width={150} />
         </div>
 
         {/* Name */}
@@ -353,28 +295,25 @@ export default function MobilePage() {
           fontSize: '0.95rem',
           lineHeight: 2.2,
           color: '#FFFFFF',
-          textShadow: '0 0 10px rgba(255,179,198,0.9), 0 0 25px rgba(255,156,174,0.7), 0 0 60px rgba(255,100,150,0.5)',
+          textShadow: '0 0 10px rgba(255,214,150,0.95), 0 0 25px rgba(255,156,174,0.75), 0 0 60px rgba(255,120,160,0.5)',
           marginBottom: '1rem',
         }}>
           Jadiha<br />Aruleswaran
         </h1>
 
-        {/* Subtitle */}
-        <p style={{
-          fontFamily: 'ui-monospace, SF Mono, monospace',
-          fontSize: '0.7rem',
-          color: '#FFFFFF',
-          textShadow: '0 0 8px rgba(255,255,255,0.9), 0 0 20px rgba(255,255,255,0.6)',
-          marginBottom: '2.5rem',
-          letterSpacing: '0.05em',
-        }}>
-          scroll down to begin the journey
+        {/* Rotating identity + tagline */}
+        <p className="welcome-identity" style={{ fontSize: '0.95rem', marginBottom: '0.6rem', minHeight: '1.6em' }}>
+          I&apos;m a <RotatingWords words={IDENTITIES} />
+        </p>
+        <p className="welcome-tagline" style={{ fontSize: '0.75rem', margin: '0 auto 1rem', textAlign: 'center' }}>
+          {TAGLINE}
+        </p>
+        <p className="welcome-hint" style={{ fontSize: '0.75rem', textAlign: 'center' }}>
+          scroll to begin the journey ↓
         </p>
 
-        <div style={{
-          fontSize: '1.5rem', color: '#FFB3C6',
-          animation: 'bounce 2s ease-in-out infinite',
-        }}>↓</div>
+        </div>
+
       </section>
 
       {/* ── Section 2: Terminal ──────────────────────────────────── */}
@@ -386,21 +325,24 @@ export default function MobilePage() {
         padding: '0.75rem',
         paddingTop: '8svh',
       }}>
-        <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '90svh', padding: '1rem', paddingTop: '3rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Reveal style={{ width: '100%' }}>
+        <div className="terminal-wrap">
+        <PixelCat />
+        <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '90svh', padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <TerminalTitleBar />
 
           {/* Name header */}
           <div style={{ textAlign: 'center', marginBottom: '0.75rem', flexShrink: 0 }}>
-            <p style={{
+            <p className="ascii-art" style={{
               fontFamily: 'var(--font-press-start)',
-              fontSize: '0.75rem',
-              color: 'var(--rose)',
+              fontSize: '0.85rem',
               letterSpacing: '0.1em',
               lineHeight: 2,
             }}>
               JADIHA
             </p>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', marginTop: '0.1rem' }}>
-              tap a command below ✿
+              tap a spell below ✿
             </p>
           </div>
 
@@ -420,8 +362,8 @@ export default function MobilePage() {
             {history.map((item, index) => (
               <div key={index} ref={index === history.length - 1 ? lastItemRef : null} style={{ marginBottom: '1rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-muted)', fontSize: '0.8rem', marginBottom: '0.25rem' }}>
-                  <span style={{ color: 'var(--rose)', fontWeight: 600 }}>~$</span>
-                  <span style={{ color: 'var(--text)' }}>{item.command}</span>
+                  <Prompt />
+                  <span style={{ color: 'var(--text)', marginLeft: '0.35rem' }}>{item.command}</span>
                 </div>
                 <div>{item.output}</div>
               </div>
@@ -431,8 +373,9 @@ export default function MobilePage() {
           {/* Command buttons */}
           <div style={{
             flexShrink: 0,
-            borderTop: '2px solid var(--border)',
-            paddingTop: '0.5rem',
+            position: 'relative',
+            borderTop: '1px solid rgba(255,179,198,0.6)',
+            paddingTop: '0.6rem',
             display: 'grid',
             gridTemplateColumns: 'repeat(4, 1fr)',
             gap: '0.35rem',
@@ -449,30 +392,28 @@ export default function MobilePage() {
             ].map(({ cmd, emoji }) => (
               <button
                 key={cmd}
-                onClick={() => handleCommand(cmd)}
+                onClick={() => runCommand(cmd)}
+                className="command-chip"
                 style={{
-                  background: 'rgba(255,246,243,0.7)',
-                  border: '2px solid var(--border)',
-                  borderRadius: 8,
+                  borderRadius: 12,
                   padding: '0.35rem 0.1rem',
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: '0.15rem',
-                  transition: 'all 0.15s ease',
-                  backdropFilter: 'blur(6px)',
-                  WebkitBackdropFilter: 'blur(6px)',
                 }}
-                onTouchStart={e => (e.currentTarget.style.background = 'rgba(255,179,198,0.35)')}
-                onTouchEnd={e => (e.currentTarget.style.background = 'rgba(255,246,243,0.7)')}
               >
                 <span style={{ fontSize: '0.6rem', lineHeight: 1 }}>{emoji}</span>
                 <span style={{ fontSize: '0.42rem', color: 'var(--text-muted)', fontFamily: 'var(--font-press-start)', lineHeight: 1 }}>{cmd}</span>
               </button>
             ))}
+            {bursts.map(id => <SparkleBurst key={id} />)}
           </div>
         </div>
+        </div>
+
+        </Reveal>
 
         {/* Keep scrolling hint */}
         <div style={{
@@ -482,8 +423,7 @@ export default function MobilePage() {
           fontSize: '0.45rem',
           color: '#FFFFFF',
           letterSpacing: '0.08em',
-          textShadow: '0 0 8px rgba(255,179,198,0.9), 0 0 20px rgba(255,255,255,0.5)',
-          animation: 'bounce 2s ease-in-out infinite',
+          textShadow: '0 0 8px rgba(255,214,150,0.95), 0 0 20px rgba(255,179,198,0.6)',
           opacity: showKeepScrolling ? 1 : 0,
           transition: 'opacity 0.4s ease',
           pointerEvents: 'none',
@@ -499,13 +439,13 @@ export default function MobilePage() {
         alignItems: 'center', justifyContent: 'center',
         position: 'relative', zIndex: 10,
         padding: '2rem 0',
-        background: 'linear-gradient(160deg, rgba(255,203,168,0.15) 0%, rgba(255,246,243,0.55) 50%, rgba(255,179,198,0.15) 100%)',
       }}>
+        <Reveal style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <h2 style={{
           fontFamily: 'var(--font-press-start)',
           fontSize: '0.55rem',
           color: '#FFFFFF',
-          textShadow: '0 0 10px rgba(255,179,198,0.9)',
+          textShadow: '0 0 10px rgba(255,214,150,0.95), 0 0 20px rgba(255,179,198,0.7)',
           marginBottom: '1.5rem',
           letterSpacing: '0.1em',
         }}>
@@ -520,23 +460,24 @@ export default function MobilePage() {
         >
           <div style={{
             display: 'flex',
-            transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
+            transition: 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)',
             transform: `translateX(-${galleryIndex * 100}%)`,
           }}>
             {GALLERY_IMAGES.map((img, i) => (
-              <div key={i} style={{ flex: '0 0 100%', padding: '0 1.25rem' }}>
+              <div key={i} style={{ flex: '0 0 100%', padding: '1rem 1.75rem' }}>
+                <div className="polaroid-float" style={{ animationDelay: `${-i * 0.7}s` }}>
                 <div style={{
-                  borderRadius: 12, overflow: 'hidden',
-                  border: '2px solid var(--border)',
-                  boxShadow: '0 8px 24px var(--shadow)',
-                  background: 'rgba(255,246,243,0.85)',
-                  backdropFilter: 'blur(8px)',
+                  padding: '10px 10px 0',
+                  borderRadius: 4,
+                  background: '#FFFAF2',
+                  transform: `rotate(${i % 2 === 0 ? -2 : 2}deg)`,
+                  boxShadow: '0 16px 34px rgba(220,120,150,0.3), 0 0 0 1px rgba(255,214,180,0.6)',
                 }}>
                   <Image
                     src={`/gallery/${img.src}`}
                     alt={img.title}
                     width={400} height={260}
-                    style={{ width: '100%', height: 230, objectFit: 'cover', display: 'block' }}
+                    style={{ width: '100%', height: 230, objectFit: 'cover', display: 'block', borderRadius: 2 }}
                   />
                   <p style={{
                     fontFamily: 'var(--font-press-start)',
@@ -549,6 +490,7 @@ export default function MobilePage() {
                   }}>
                     {img.title}
                   </p>
+                </div>
                 </div>
               </div>
             ))}
@@ -570,13 +512,14 @@ export default function MobilePage() {
           </span>
           <button onClick={() => setGalleryIndex(i => Math.min(GALLERY_IMAGES.length-1, i+1))} disabled={galleryIndex === GALLERY_IMAGES.length-1} style={navBtn(galleryIndex === GALLERY_IMAGES.length-1)}>→</button>
         </div>
+        </Reveal>
       </section>
 
       {/* Landscape overlay */}
       {isLandscape && (
         <div style={{
           position: 'fixed', inset: 0, zIndex: 9999,
-          background: 'linear-gradient(160deg, #4AAEDE, #6EC6E8, #C0EAF8)',
+          background: 'linear-gradient(180deg, #C8B4E6, #F2B9CF, #FFD6B0, #FFE6B5)',
           display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'center',
           gap: '1.5rem',
@@ -604,7 +547,7 @@ export default function MobilePage() {
       )}
 
       <style>{`
-        html { background: #3A9A3A !important; }
+        html { background: #4F9A4A !important; }
         body { background: transparent !important; }
         @keyframes bounce {
           0%, 100% { transform: translateY(0); }
