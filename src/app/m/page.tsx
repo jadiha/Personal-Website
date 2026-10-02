@@ -35,6 +35,7 @@ export default function MobilePage() {
   const [isLandscape, setIsLandscape] = useState(false);
   const progressRef = useRef(0);
   const welcomeRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const terminalContentRef = useRef<HTMLDivElement>(null);
   const lastItemRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -48,6 +49,10 @@ export default function MobilePage() {
     const tick = () => {
       const y = window.scrollY;
       if (y !== last) {
+        // Hide the header while scrolling down, bring it back when scrolling up
+        if (navRef.current && Math.abs(y - last) > 3) {
+          navRef.current.classList.toggle('site-nav-hidden', y > last && y > 60);
+        }
         last = y;
         const max = document.documentElement.scrollHeight - window.innerHeight;
         progressRef.current = max > 0 ? (y / max) * 100 : 0;
@@ -275,6 +280,17 @@ export default function MobilePage() {
       {/* Golden-hour pixel world */}
       <PixelSky progressRef={progressRef} portrait />
 
+      {/* Header: jump between sections */}
+      <nav ref={navRef} className="site-nav site-nav-mobile" aria-label="Sections">
+        <button type="button" className="site-nav-home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>✿ jadiha</button>
+        <button type="button" onClick={() => {
+          // Stop a little above the terminal so Jadiha and the cat stay in view
+          const el = document.getElementById('terminal');
+          if (el) window.scrollTo({ top: el.offsetTop - 12, behavior: 'smooth' });
+        }}>terminal</button>
+        <button type="button" onClick={() => document.getElementById('photos')?.scrollIntoView({ behavior: 'smooth' })}>photos</button>
+      </nav>
+
       {/* ── Section 1: Welcome ───────────────────────────────────── */}
       <section style={{
         height: '100dvh',
@@ -319,7 +335,7 @@ export default function MobilePage() {
       </section>
 
       {/* ── Section 2: Terminal ──────────────────────────────────── */}
-      <section style={{
+      <section id="terminal" style={{
         minHeight: '100svh',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
@@ -441,7 +457,7 @@ export default function MobilePage() {
       </section>
 
       {/* ── Section 3: Gallery ───────────────────────────────────── */}
-      <section style={{
+      <section id="photos" style={{
         minHeight: '100svh',
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',

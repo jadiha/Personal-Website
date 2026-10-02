@@ -76,7 +76,13 @@ export default function Home() {
   const galleryRef = useRef<HTMLElement>(null);
   const galleryTrackRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   const progressRef = useRef(0);
+
+  // Glide to a point in the scroll timeline (0 = welcome, 100 = terminal)
+  const goTo = (progress: number) => {
+    window.scrollTo({ top: (progress / 100) * window.innerHeight * 3, behavior: 'smooth' });
+  };
 
   // Scroll-driven scenes. Written straight to the DOM every frame so scrolling never
   // re-renders the page. Timeline over scroll progress 0–100:
@@ -125,6 +131,12 @@ export default function Home() {
       terminal.style.transform = `translateY(${(1 - lift) * 100}vh)`;
       terminal.style.visibility = lift <= 0 ? 'hidden' : 'visible';
       terminal.style.pointerEvents = lift > 0.97 ? 'auto' : 'none';
+
+      // Highlight the section you're in
+      const section = p < 12 ? 'home' : p < 70 ? 'photos' : 'terminal';
+      navRef.current?.querySelectorAll<HTMLElement>('[data-section]').forEach(link => {
+        link.classList.toggle('active', link.dataset.section === section);
+      });
     };
 
     let raf = 0;
@@ -511,6 +523,13 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Header: jump between scenes */}
+      <nav ref={navRef} className="site-nav" aria-label="Sections">
+        <button type="button" className="site-nav-home" data-section="home" onClick={() => goTo(0)}>✿ jadiha</button>
+        <button type="button" data-section="photos" onClick={() => goTo(32)}>photos</button>
+        <button type="button" data-section="terminal" onClick={() => goTo(100)}>terminal</button>
+      </nav>
 
       {/* Terminal Section */}
       <section
