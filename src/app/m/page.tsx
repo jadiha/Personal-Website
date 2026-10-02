@@ -7,6 +7,8 @@ import WelcomePhoto from '@/components/WelcomePhoto';
 import Reveal from '@/components/Reveal';
 import RotatingWords from '@/components/RotatingWords';
 import PixelCat from '@/components/PixelCat';
+import PixelMe from '@/components/PixelMe';
+import MoreBelow from '@/components/MoreBelow';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
 import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
@@ -327,7 +329,10 @@ export default function MobilePage() {
       }}>
         <Reveal style={{ width: '100%' }}>
         <div className="terminal-wrap">
-        <PixelCat />
+        <div className="terminal-buddies">
+          <PixelMe />
+          <PixelCat />
+        </div>
         <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '90svh', padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <TerminalTitleBar />
 
@@ -347,6 +352,7 @@ export default function MobilePage() {
           </div>
 
           {/* Output area */}
+          <div className="terminal-scroll">
           <div
             ref={terminalContentRef}
             style={{
@@ -368,6 +374,8 @@ export default function MobilePage() {
                 <div>{item.output}</div>
               </div>
             ))}
+          </div>
+          <MoreBelow scrollRef={terminalContentRef} />
           </div>
 
           {/* Command buttons */}

@@ -39,6 +39,8 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${pressStart2P.variable} antialiased`}
+        // Browser extensions (e.g. Grammarly) add attributes to <body> before React loads
+        suppressHydrationWarning
       >
         {children}
       </body>

@@ -373,17 +373,54 @@ a.resume-button:hover::before { content: none; }
   width: 100%;
 }
 
-.pixel-cat {
+/* Pixel Jadiha and the cat, side by side on the terminal's top edge */
+.terminal-buddies {
   position: absolute;
   right: 9%;
   bottom: calc(100% - 6px);
   z-index: 5;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.pixel-me,
+.pixel-cat {
+  position: relative;
   padding: 0;
   border: none;
   background: none;
   cursor: pointer;
   line-height: 0;
   filter: drop-shadow(0 3px 0 rgba(30, 26, 38, 0.18));
+}
+
+.pixel-me canvas {
+  image-rendering: pixelated;
+  /* Legs hang over the front of the terminal */
+  margin-bottom: -20px;
+  transition: transform 0.2s ease;
+}
+
+.pixel-me:hover canvas,
+.pixel-me:focus-visible canvas {
+  transform: translateY(-2px);
+}
+
+.pixel-me:focus-visible {
+  outline: 2px dashed #FF9CAE;
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+.pixel-me .pixel-me-bubble {
+  left: auto;
+  right: 10px;
+}
+
+.pixel-me .pixel-me-bubble::after {
+  left: auto;
+  right: 14px;
 }
 
 .pixel-cat canvas {
@@ -424,6 +461,7 @@ a.resume-button:hover::before { content: none; }
   line-height: 1.4;
   color: #1E1A26;
   white-space: nowrap;
+  width: max-content;
   animation: bubble-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -465,6 +503,86 @@ a.resume-button:hover::before { content: none; }
   0%   { transform: translateY(0) scale(0.6);   opacity: 0; }
   20%  { opacity: 1; }
   100% { transform: translateY(-46px) scale(1.1); opacity: 0; }
+}
+
+/* ── "More below" cue at the bottom of long output ──────────────────────── */
+.terminal-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.terminal-scroll > .terminal-content,
+.terminal-scroll > div:first-child {
+  min-height: 0;
+}
+
+.more-below {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 72px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+  background: linear-gradient(to bottom, rgba(255, 240, 246, 0), rgba(255, 240, 246, 0.75) 55%, rgba(255, 236, 228, 0.92));
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  pointer-events: none;
+}
+
+.more-below-on { opacity: 1; transform: none; }
+.more-below-on .more-below-pill { pointer-events: auto; }
+
+/* Frosted pill with the terminal's gold → pink → lilac edge */
+.more-below-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: 'SF Mono', Menlo, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: #B0457A;
+  padding: 0.32rem 0.85rem 0.32rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(255, 250, 252, 0.9), rgba(255, 250, 252, 0.9)) padding-box,
+    linear-gradient(120deg, #FFE3A3, #FFB3C6, #D9B8FF) border-box;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(196, 110, 150, 0.2), 0 0 14px rgba(255, 214, 150, 0.35);
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+}
+
+.more-below-flower {
+  color: #FF9CAE;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+.more-below-chevron {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  opacity: 0.8;
+}
+
+.more-below-pill:hover,
+.more-below-pill:focus-visible {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(196, 110, 150, 0.28), 0 0 20px rgba(255, 214, 150, 0.55);
+  outline: none;
 }
 
 /* ── Prompt ──────────────────────────────────────────────────────────────── */
@@ -1207,6 +1325,14 @@ nav {
     font-size: 0.65rem;
   }
 
+  /* Phone: Jadiha sits at the far right so her legs hang where the status was */
+  .terminal-buddies {
+    right: 3%;
+    flex-direction: row-reverse;
+  }
+
+  .terminal-status { visibility: hidden; }
+
   .content-container {
     padding: 0.5rem 0.75rem;
     font-size: 0.8rem;
@@ -1307,5 +1433,5 @@ nav {
   .terminal-subtitle { display: none; }
   .command-chips { margin-bottom: 0.5rem; }
   .terminal-input { padding: 0.6rem 1rem; }
-  .pixel-cat canvas { width: 60px !important; height: 51px !important; }
+  .terminal-buddies { transform: scale(0.75); transform-origin: bottom right; }
 }

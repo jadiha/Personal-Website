@@ -7,6 +7,8 @@ import PixelSky from '@/components/PixelSky';
 import WelcomePhoto from '@/components/WelcomePhoto';
 import RotatingWords from '@/components/RotatingWords';
 import PixelCat from '@/components/PixelCat';
+import PixelMe from '@/components/PixelMe';
+import MoreBelow from '@/components/MoreBelow';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
 import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
@@ -68,6 +70,7 @@ export default function Home() {
   const [commandHistory, setCommandHistory] = useState<string[]>([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
   const contentContainerRef = useRef<HTMLDivElement>(null);
+  const terminalContentRef = useRef<HTMLDivElement>(null);
   const [bursts, setBursts] = useState<number[]>([]);
   const welcomeRef = useRef<HTMLElement>(null);
   const galleryRef = useRef<HTMLElement>(null);
@@ -155,7 +158,7 @@ export default function Home() {
 
   // Scroll the terminal so the newest output starts at the top, ready to read down
   useEffect(() => {
-    const terminalContent = contentContainerRef.current?.querySelector('.terminal-content');
+    const terminalContent = terminalContentRef.current;
     const latest = terminalContent?.lastElementChild;
     if (!terminalContent || !latest || history.length < 2) return;
     const offset = latest.getBoundingClientRect().top - terminalContent.getBoundingClientRect().top;
@@ -525,7 +528,10 @@ export default function Home() {
       >
         <div className="container mx-auto px-4">
           <div className="terminal-wrap">
-          <PixelCat />
+          <div className="terminal-buddies">
+            <PixelMe />
+            <PixelCat />
+          </div>
           <div className="terminal-window">
             <TerminalTitleBar />
             <div className="text-center">
@@ -538,7 +544,8 @@ export default function Home() {
             </div>
 
             <div className="content-container" ref={contentContainerRef}>
-              <div className="terminal-content">
+              <div className="terminal-scroll">
+              <div className="terminal-content" ref={terminalContentRef}>
                 {history.map((item, index) => (
                   <div key={index} className="mb-4">
                     <div className="terminal-prompt text-sm">
@@ -550,6 +557,8 @@ export default function Home() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <MoreBelow scrollRef={terminalContentRef} />
               </div>
 
               <div className="command-chips">
