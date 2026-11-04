@@ -461,7 +461,7 @@ export default function Home() {
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, damping: 18 }}
           >
-            <WelcomePhoto width={260} />
+            <WelcomePhoto width={320} />
           </motion.div>
           <div className="welcome-copy">
             <motion.h1

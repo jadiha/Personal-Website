@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { CREATOR } from '@/content/profile';
 
 // Gallery card media for JD's World. Plays a muted looping clip while on screen,
-// or shows the video thumbnail until a clip is added. Tapping opens the video.
+// or shows the video thumbnail until a clip is added. Tapping opens the channel.
 export default function CreatorClip() {
   const { featured } = CREATOR;
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -26,11 +26,11 @@ export default function CreatorClip() {
 
   return (
     <a
-      href={featured.url}
+      href={CREATOR.youtube}
       target="_blank"
       rel="noopener noreferrer"
       className="creator-clip"
-      aria-label={`Watch ${featured.title} on YouTube`}
+      aria-label={`Visit ${CREATOR.name} on YouTube`}
     >
       {showVideo ? (
         <video

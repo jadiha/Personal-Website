@@ -37,7 +37,7 @@ export default function MobilePage() {
   const [showKeepScrolling, setShowKeepScrolling] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
   // Short phones (iPhone SE etc.) get a smaller photo so the whole intro fits
-  const [photoWidth, setPhotoWidth] = useState(150);
+  const [photoWidth, setPhotoWidth] = useState(180);
   const progressRef = useRef(0);
   const welcomeRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -229,7 +229,7 @@ export default function MobilePage() {
   useEffect(() => {
     const check = () => {
       setIsLandscape(window.innerWidth > window.innerHeight);
-      setPhotoWidth(window.innerHeight < 720 ? 112 : 150);
+      setPhotoWidth(window.innerHeight < 720 ? 132 : 180);
     };
     check();
     window.addEventListener('resize', check);
@@ -314,7 +314,7 @@ export default function MobilePage() {
       }}>
         <div ref={welcomeRef} style={{ willChange: 'transform, opacity' }}>
         {/* Welcome photo */}
-        <div style={{ marginBottom: photoWidth < 150 ? '1.25rem' : '2rem' }}>
+        <div style={{ marginBottom: photoWidth < 180 ? '1.25rem' : '2rem' }}>
           <WelcomePhoto width={photoWidth} />
         </div>
 
