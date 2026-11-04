@@ -50,5 +50,21 @@ export const EXPERIENCE: Role[] = [
 ];
 
 // Rotating "I'm a ___" words and tagline on the welcome screen
-export const IDENTITIES = ['community builder', 'social impact builder', 'founder', 'design engineer', 'leader', 'dreamer & doer'];
+export const IDENTITIES = ['community builder', 'social impact builder', 'founder', 'content creator', 'design engineer', 'leader', 'dreamer & doer'];
 export const TAGLINE = 'Building for the people who need it and deserve it.';
+
+// JD's World: YouTube + Instagram. Drop a short muted clip at public/gallery/jds-world.mp4
+// and set `clip` to '/gallery/jds-world.mp4' to make the gallery card play it.
+export const CREATOR = {
+  name: "JD's World",
+  youtube: 'https://www.youtube.com/@jdssworldddd',
+  youtubeHandle: '@jdssworldddd',
+  instagram: 'https://www.instagram.com/jdssworldd/',
+  instagramHandle: '@jdssworldd',
+  featured: {
+    title: 'SYDE Grand River Rafting Summer 2026',
+    url: 'https://www.youtube.com/watch?v=3WFZ1sINbDQ',
+    poster: '/gallery/jds-world-thumb.jpg',
+    clip: '/gallery/jds-world.mp4' as string | null,
+  },
+};

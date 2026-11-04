@@ -1,0 +1,53 @@
+'use client';
+
+import { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
+import { CREATOR } from '@/content/profile';
+
+// Gallery card media for JD's World. Plays a muted looping clip while on screen,
+// or shows the video thumbnail until a clip is added. Tapping opens the video.
+export default function CreatorClip() {
+  const { featured } = CREATOR;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [clipFailed, setClipFailed] = useState(false);
+  const showVideo = !!featured.clip && !clipFailed;
+
+  // Only play while visible so it doesn't burn battery off-screen
+  useEffect(() => {
+    const v = videoRef.current;
+    if (!v) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) v.play().catch(() => {});
+      else v.pause();
+    }, { threshold: 0.4 });
+    io.observe(v);
+    return () => io.disconnect();
+  }, [showVideo]);
+
+  return (
+    <a
+      href={featured.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="creator-clip"
+      aria-label={`Watch ${featured.title} on YouTube`}
+    >
+      {showVideo ? (
+        <video
+          ref={videoRef}
+          src={featured.clip!}
+          poster={featured.poster}
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          onError={() => setClipFailed(true)}
+        />
+      ) : (
+        <Image src={featured.poster} alt={featured.title} width={640} height={360} />
+      )}
+      <span className="creator-clip-badge">▶ {CREATOR.name}</span>
+      {!showVideo && <span className="creator-clip-play" aria-hidden="true">▶</span>}
+    </a>
+  );
+}

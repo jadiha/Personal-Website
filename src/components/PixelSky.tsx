@@ -266,10 +266,11 @@ export default function PixelSky({ progressRef, portrait = false }: PixelSkyProp
     };
 
     // Landmark placement keeps them clear of the welcome text on each layout
-    // Toronto alone on the left, New York on the right in front of the setting sun
+    // Toronto alone on the left, New York on the right in front of the setting sun.
+    // On desktop Liberty stands right of Manhattan so it never sits behind the scroll hint.
     const skyline = portrait
       ? { cn: 16, manhattan: 118, liberty: 108 }
-      : { cn: 16, manhattan: 228, liberty: 216 };
+      : { cn: 16, manhattan: 228, liberty: 293 };
 
     // A small rainbow peeking in from the top-right corner
     const rainbowArc = portrait

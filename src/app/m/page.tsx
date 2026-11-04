@@ -9,19 +9,22 @@ import RotatingWords from '@/components/RotatingWords';
 import PixelCat from '@/components/PixelCat';
 import PixelMe from '@/components/PixelMe';
 import MoreBelow from '@/components/MoreBelow';
+import CreatorClip from '@/components/CreatorClip';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
-import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
+import { ABOUT, CREATOR, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
 interface CommandHistory {
   command: string;
   output: React.ReactNode;
 }
 
-const GALLERY_IMAGES = [
+// `video: true` marks the JD's World card, which plays a clip instead of a photo
+const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
   { src: 'OrientationWeek.jpeg', title: 'Orientation Week Leaders 2025' },
   { src: 'Ambassadors.jpeg',     title: 'Engineering Ambassadors 2024' },
   { src: 'HackTheNorth.jpg',     title: 'Hack The North 2022' },
   { src: 'DSC03005.jpg',         title: 'Acapella 2023' },
+  { video: true, title: "JD's World · watch on YouTube" },
   { src: 'OrientationSpirit.jpg',title: 'Black and Gold Day 2022' },
   { src: 'DSC00227.JPG',         title: 'Women in Engineering Kick Off 2024' },
   { src: 'Volleyball.jpg',       title: 'Wealthsimple Beach Volleyball 2025' },
@@ -33,6 +36,8 @@ export default function MobilePage() {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [showKeepScrolling, setShowKeepScrolling] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  // Short phones (iPhone SE etc.) get a smaller photo so the whole intro fits
+  const [photoWidth, setPhotoWidth] = useState(150);
   const progressRef = useRef(0);
   const welcomeRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
@@ -178,6 +183,8 @@ export default function MobilePage() {
               <div><p className="text-gray-600 text-xs">Email</p><a href="mailto:jadiha.arul@gmail.com" className="text-pink-400 text-xs hover:underline">jadiha.arul@gmail.com</a></div>
               <div><p className="text-gray-600 text-xs">LinkedIn</p><a href="https://www.linkedin.com/in/jadiha-aruleswaran/" target="_blank" rel="noopener noreferrer" className="text-pink-400 text-xs hover:underline">jadiha-aruleswaran</a></div>
               <div><p className="text-gray-600 text-xs">GitHub</p><a href="https://github.com/jadiha" target="_blank" rel="noopener noreferrer" className="text-pink-400 text-xs hover:underline">@jadiha</a></div>
+              <div><p className="text-gray-600 text-xs">YouTube · {CREATOR.name}</p><a href={CREATOR.youtube} target="_blank" rel="noopener noreferrer" className="text-pink-400 text-xs hover:underline">{CREATOR.youtubeHandle}</a></div>
+              <div><p className="text-gray-600 text-xs">Instagram · {CREATOR.name}</p><a href={CREATOR.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-400 text-xs hover:underline">{CREATOR.instagramHandle}</a></div>
             </div>
           </div>
         );
@@ -220,7 +227,10 @@ export default function MobilePage() {
 
   // Detect landscape orientation
   useEffect(() => {
-    const check = () => setIsLandscape(window.innerWidth > window.innerHeight);
+    const check = () => {
+      setIsLandscape(window.innerWidth > window.innerHeight);
+      setPhotoWidth(window.innerHeight < 720 ? 112 : 150);
+    };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -296,15 +306,16 @@ export default function MobilePage() {
         height: '100dvh',
         minHeight: '100dvh',
         display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'flex-start',
+        alignItems: 'center', justifyContent: 'center',
         position: 'relative', zIndex: 10,
-        textAlign: 'center', padding: '9svh 1.5rem 2rem',
+        // Top padding clears the floating header; content sits in the visual middle
+        textAlign: 'center', padding: '4.5rem 1.5rem 2.5rem',
         overflow: 'hidden',
       }}>
         <div ref={welcomeRef} style={{ willChange: 'transform, opacity' }}>
         {/* Welcome photo */}
-        <div style={{ marginBottom: '2rem' }}>
-          <WelcomePhoto width={150} />
+        <div style={{ marginBottom: photoWidth < 150 ? '1.25rem' : '2rem' }}>
+          <WelcomePhoto width={photoWidth} />
         </div>
 
         {/* Name */}
@@ -497,12 +508,16 @@ export default function MobilePage() {
                   transform: `rotate(${i % 2 === 0 ? -2 : 2}deg)`,
                   boxShadow: '0 16px 34px rgba(220,120,150,0.3), 0 0 0 1px rgba(255,214,180,0.6)',
                 }}>
-                  <Image
-                    src={`/gallery/${img.src}`}
-                    alt={img.title}
-                    width={400} height={260}
-                    style={{ width: '100%', height: 230, objectFit: 'cover', display: 'block', borderRadius: 2 }}
-                  />
+                  {img.video ? (
+                    <div style={{ height: 230 }}><CreatorClip /></div>
+                  ) : (
+                    <Image
+                      src={`/gallery/${img.src}`}
+                      alt={img.title}
+                      width={400} height={260}
+                      style={{ width: '100%', height: 230, objectFit: 'cover', display: 'block', borderRadius: 2 }}
+                    />
+                  )}
                   <p style={{
                     fontFamily: 'var(--font-press-start)',
                     fontSize: '0.42rem',
@@ -512,7 +527,9 @@ export default function MobilePage() {
                     letterSpacing: '0.05em',
                     lineHeight: 1.8,
                   }}>
-                    {img.title}
+                    {img.video
+                      ? <a href={CREATOR.youtube} target="_blank" rel="noopener noreferrer" className="creator-caption-link">{img.title}</a>
+                      : img.title}
                   </p>
                 </div>
                 </div>

@@ -9,8 +9,9 @@ import RotatingWords from '@/components/RotatingWords';
 import PixelCat from '@/components/PixelCat';
 import PixelMe from '@/components/PixelMe';
 import MoreBelow from '@/components/MoreBelow';
+import CreatorClip from '@/components/CreatorClip';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
-import { ABOUT, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
+import { ABOUT, CREATOR, EXPERIENCE, IDENTITIES, TAGLINE } from '@/content/profile';
 
 interface CommandHistory {
   command: string;
@@ -42,11 +43,13 @@ const ASCII_ART = `
  ╚════╝ ╚═╝  ╚═╝╚═════╝ ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝
 `;
 
-const GALLERY_IMAGES = [
+// `video: true` marks the JD's World card, which plays a clip instead of a photo
+const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
   { src: 'OrientationWeek.jpeg', title: 'Orientation Week Leaders 2025' },
   { src: 'Ambassadors.jpeg', title: 'Engineering Ambassadors 2024' },
   { src: 'HackTheNorth.jpg', title: 'Hack The North 2022' },
   { src: 'DSC03005.jpg', title: 'Acapella 2023' },
+  { video: true, title: "JD's World · watch on YouTube" },
   { src: 'OrientationSpirit.jpg', title: 'Black and Gold Day 2022' },
   { src: 'DSC00227.JPG', title: 'Women in Engineering Kick Off 2024' },
   { src: 'Volleyball.jpg', title: 'Wealthsimple Beach Volleyball 2025' },
@@ -299,6 +302,18 @@ export default function Home() {
                   @jadiha
                 </a>
               </div>
+              <div>
+                <p className="text-gray-600 font-medium">YouTube · {CREATOR.name}</p>
+                <a href={CREATOR.youtube} target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">
+                  {CREATOR.youtubeHandle}
+                </a>
+              </div>
+              <div>
+                <p className="text-gray-600 font-medium">Instagram · {CREATOR.name}</p>
+                <a href={CREATOR.instagram} target="_blank" rel="noopener noreferrer" className="text-pink-400 hover:underline">
+                  {CREATOR.instagramHandle}
+                </a>
+              </div>
             </div>
           </div>
         );
@@ -507,16 +522,22 @@ export default function Home() {
                   style={{ transform: `rotate(${index % 2 === 0 ? -2 : 2}deg)` }}
                 >
                   <div className="polaroid-photo">
-                    <Image
-                      src={`/gallery/${image.src}`}
-                      alt={image.title}
-                      width={500}
-                      height={360}
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                    {image.video ? <CreatorClip /> : (
+                      <Image
+                        src={`/gallery/${image.src}`}
+                        alt={image.title}
+                        width={500}
+                        height={360}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                      />
+                    )}
                   </div>
-                  <figcaption className="polaroid-caption">{image.title}</figcaption>
+                  <figcaption className="polaroid-caption">
+                    {image.video
+                      ? <a href={CREATOR.youtube} target="_blank" rel="noopener noreferrer">{image.title}</a>
+                      : image.title}
+                  </figcaption>
                 </figure>
               </div>
             ))}
