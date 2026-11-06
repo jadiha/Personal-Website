@@ -20,13 +20,14 @@ interface CommandHistory {
 
 // `video: true` marks the JD's World card, which plays a clip instead of a photo
 const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
-  { video: true, title: "JD's World · watch on YouTube" },
   { src: 'EngineeringDay2026.jpg', title: 'Engineering Day 2026' },
   { src: 'OrientationWeek.jpeg', title: 'Orientation Week Leaders 2025' },
   { src: 'Volleyball.jpg',       title: 'Wealthsimple Beach Volleyball 2025' },
-  { src: 'Ambassadors.jpeg',     title: 'Engineering Ambassadors 2024' },
+  { video: true, title: "JD's World · watch on YouTube" },
   { src: 'DSC00227.JPG',         title: 'Women in Engineering Kick Off 2024' },
+  { src: 'Ambassadors.jpeg',     title: 'Engineering Ambassadors 2024' },
   { src: 'DSC03005.jpg',         title: 'Acapella 2023' },
+  { src: 'GaanaDance2023.jpg',   title: 'Warriors Gaana Dance Comp 2023' },
   { src: 'HackTheNorth.jpg',     title: 'Hack The North 2022' },
   { src: 'OrientationSpirit.jpg',title: 'Black and Gold Day 2022' },
 ];

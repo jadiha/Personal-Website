@@ -46,7 +46,6 @@ export default function CreatorClip() {
       ) : (
         <Image src={featured.poster} alt={featured.title} width={640} height={360} />
       )}
-      <span className="creator-clip-badge">▶ {CREATOR.name}</span>
       {!showVideo && <span className="creator-clip-play" aria-hidden="true">▶</span>}
     </a>
   );

@@ -35,7 +35,7 @@ export default function WelcomePhoto({ width }: { width: number }) {
           className="welcome-photo-caption"
           style={{ fontSize: Math.max(10, Math.round(width * 0.065)) }}
         >
-          cali &rsquo;26 trip
+          cali &rsquo;26
         </figcaption>
       </figure>
       <span className="welcome-photo-wave" aria-hidden="true">👋🏽</span>
