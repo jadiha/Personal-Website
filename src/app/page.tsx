@@ -6,8 +6,8 @@ import Image from 'next/image';
 import PixelSky from '@/components/PixelSky';
 import WelcomePhoto from '@/components/WelcomePhoto';
 import RotatingWords from '@/components/RotatingWords';
-import PixelCat from '@/components/PixelCat';
 import PixelMe from '@/components/PixelMe';
+import PixelLachu from '@/components/PixelLachu';
 import MoreBelow from '@/components/MoreBelow';
 import CreatorClip from '@/components/CreatorClip';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
@@ -30,8 +30,7 @@ const COMMANDS = [
   'download',
   'socials',
   'gallery',
-  'pet',
-  'meow'
+  'lachu'
 ];
 
 const ASCII_ART = `
@@ -376,13 +375,11 @@ export default function Home() {
         );
         break;
 
-      case 'pet':
-      case 'cat':
-      case 'meow':
-        window.dispatchEvent(new Event('pet-cat'));
+      case 'lachu':
+        window.dispatchEvent(new Event('say-hi-lachu'));
         output = (
           <div className="command-output">
-            <p className="text-gray-600">🐈‍⬛ The cat on top of the terminal purrs happily. Click it anytime for more pets!</p>
+            <p className="text-gray-600">🦜 Lachu bobs his head on top of the terminal. Click him anytime to say hi!</p>
           </div>
         );
         break;
@@ -571,7 +568,7 @@ export default function Home() {
           <div className="terminal-wrap">
           <div className="terminal-buddies">
             <PixelMe />
-            <PixelCat />
+            <PixelLachu />
           </div>
           <div className="terminal-window">
             <TerminalTitleBar />

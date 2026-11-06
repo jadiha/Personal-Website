@@ -343,13 +343,13 @@ a.resume-button:hover {
 
 a.resume-button:hover::before { content: none; }
 
-/* ── Pixel cat on the terminal ────────────────────────────────────────────── */
+/* ── Pixel Jadiha and Lachu on the terminal ────────────────────────────────────────────── */
 .terminal-wrap {
   position: relative;
   width: 100%;
 }
 
-/* Pixel Jadiha and the cat, side by side on the terminal's top edge */
+/* Pixel Jadiha and Lachu, side by side on the terminal's top edge */
 .terminal-buddies {
   position: absolute;
   right: 9%;
@@ -361,7 +361,7 @@ a.resume-button:hover::before { content: none; }
 }
 
 .pixel-me,
-.pixel-cat {
+.pixel-lachu {
   position: relative;
   padding: 0;
   border: none;
@@ -399,32 +399,19 @@ a.resume-button:hover::before { content: none; }
   right: 14px;
 }
 
-.pixel-cat canvas {
+.pixel-lachu canvas {
   image-rendering: pixelated;
+  /* Tail hangs over the front of the terminal, feet level with Jadiha's lap */
+  margin-bottom: -16px;
   transition: transform 0.2s ease;
 }
 
-.pixel-cat:hover canvas,
-.pixel-cat:focus-visible canvas {
+.pixel-lachu:hover canvas,
+.pixel-lachu:focus-visible canvas {
   transform: translateY(-2px);
 }
 
-.pixel-cat:focus-visible {
-  outline: 2px dashed #FF9CAE;
-  outline-offset: 4px;
-  border-radius: 6px;
-}
-
-.pixel-cat-purr canvas {
-  animation: cat-purr 0.12s linear infinite;
-}
-
-@keyframes cat-purr {
-  0%, 100% { transform: translate(0, -2px);    }
-  50%      { transform: translate(1px, -2px);  }
-}
-
-.pixel-cat-bubble {
+.pixel-bubble {
   position: absolute;
   bottom: calc(100% + 4px);
   left: 6px;
@@ -441,7 +428,7 @@ a.resume-button:hover::before { content: none; }
   animation: bubble-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.pixel-cat-bubble::after {
+.pixel-bubble::after {
   content: '';
   position: absolute;
   top: 100%;
@@ -455,33 +442,6 @@ a.resume-button:hover::before { content: none; }
   to   { transform: scale(1);   opacity: 1; }
 }
 
-.pixel-cat-hearts {
-  position: absolute;
-  left: 50%;
-  top: 4px;
-  pointer-events: none;
-}
-
-.pixel-cat-hearts i {
-  position: absolute;
-  font-style: normal;
-  font-size: 0.9rem;
-  color: #FF7FA6;
-  text-shadow: 1px 1px 0 #FFFFFF;
-  animation: heart-float 1.3s ease-out forwards;
-}
-
-.pixel-cat-hearts i:nth-child(1) { left: -18px; animation-delay: 0s;    }
-.pixel-cat-hearts i:nth-child(2) { left: 0;     animation-delay: 0.15s; }
-.pixel-cat-hearts i:nth-child(3) { left: 16px;  animation-delay: 0.3s;  }
-
-@keyframes heart-float {
-  0%   { transform: translateY(0) scale(0.6);   opacity: 0; }
-  20%  { opacity: 1; }
-  100% { transform: translateY(-46px) scale(1.1); opacity: 0; }
-}
-
-/* ── "More below" cue at the bottom of long output ──────────────────────── */
 .terminal-scroll {
   position: relative;
   flex: 1;
@@ -1425,7 +1385,6 @@ a:hover::before {
   /* Phone: Jadiha sits at the far right so her legs hang where the status was */
   .terminal-buddies {
     right: 3%;
-    flex-direction: row-reverse;
   }
 
   .terminal-status { visibility: hidden; }
@@ -1488,7 +1447,6 @@ a:hover::before {
   .welcome-photo,
   .welcome-photo-halo,
   .welcome-photo-wave,
-  .pixel-cat-purr canvas,
   .terminal-window,
   .terminal-window::before,
   .terminal-window::after {

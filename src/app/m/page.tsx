@@ -6,8 +6,8 @@ import PixelSky from '@/components/PixelSky';
 import WelcomePhoto from '@/components/WelcomePhoto';
 import Reveal from '@/components/Reveal';
 import RotatingWords from '@/components/RotatingWords';
-import PixelCat from '@/components/PixelCat';
 import PixelMe from '@/components/PixelMe';
+import PixelLachu from '@/components/PixelLachu';
 import MoreBelow from '@/components/MoreBelow';
 import CreatorClip from '@/components/CreatorClip';
 import { TerminalTitleBar, Prompt, SparkleBurst } from '@/components/TerminalParts';
@@ -353,14 +353,14 @@ export default function MobilePage() {
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
         position: 'relative', zIndex: 10,
-        // Top room for pixel Jadiha + the cat sitting on the terminal's edge
+        // Top room for pixel Jadiha + Lachu sitting on the terminal's edge
         padding: '96px 0.75rem 0.5rem',
       }}>
         <Reveal style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
         <div className="terminal-wrap" style={{ flex: 1, minHeight: 0 }}>
         <div className="terminal-buddies">
           <PixelMe />
-          <PixelCat />
+          <PixelLachu />
         </div>
         <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '100%', padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <TerminalTitleBar />

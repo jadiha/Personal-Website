@@ -49,7 +49,7 @@ const COLORS: Record<string, string> = {
   J: '#6B7FB0',
 };
 
-const HELLOS = ['hey, how you doing!', 'try the terminal <3', 'thanks for stopping by ✿', 'pet the cat!'];
+const HELLOS = ['hey, how you doing!', 'try the terminal <3', 'thanks for stopping by ✿', 'say hi to lachu!'];
 
 export default function PixelMe() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -137,7 +137,7 @@ export default function PixelMe() {
 
   return (
     <button type="button" className="pixel-me" onClick={wave} aria-label="Say hi to Jadiha">
-      {bubble && <span className="pixel-cat-bubble pixel-me-bubble">{bubble}</span>}
+      {bubble && <span className="pixel-bubble pixel-me-bubble">{bubble}</span>}
       <canvas ref={canvasRef} width={W} height={H} style={{ width: W * SCALE, height: H * SCALE }} />
     </button>
   );
