@@ -28,7 +28,7 @@ const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
   { src: 'OrientationSpirit.jpg',title: 'Black and Gold Day 2022' },
   { src: 'DSC00227.JPG',         title: 'Women in Engineering Kick Off 2024' },
   { src: 'Volleyball.jpg',       title: 'Wealthsimple Beach Volleyball 2025' },
-  { src: 'IMG-20240715-WA0005.jpg', title: 'Engineering Day 2024' },
+  { src: 'EngineeringDay2026.jpg', title: 'Engineering Day 2026' },
 ];
 
 export default function MobilePage() {
@@ -41,6 +41,8 @@ export default function MobilePage() {
   const progressRef = useRef(0);
   const welcomeRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLElement>(null);
+  // The page scrolls inside this full-screen box so each section snaps to exactly one screen
+  const scrollerRef = useRef<HTMLElement>(null);
   const terminalContentRef = useRef<HTMLDivElement>(null);
   const lastItemRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
@@ -52,18 +54,20 @@ export default function MobilePage() {
     let raf = 0;
     let last = -1;
     const tick = () => {
-      const y = window.scrollY;
+      const sc = scrollerRef.current;
+      const y = sc ? sc.scrollTop : 0;
+      const vh = sc ? sc.clientHeight : window.innerHeight;
       if (y !== last) {
         // Hide the header while scrolling down, bring it back when scrolling up
         if (navRef.current && Math.abs(y - last) > 3) {
           navRef.current.classList.toggle('site-nav-hidden', y > last && y > 60);
         }
         last = y;
-        const max = document.documentElement.scrollHeight - window.innerHeight;
+        const max = sc ? sc.scrollHeight - vh : 0;
         progressRef.current = max > 0 ? (y / max) * 100 : 0;
         const welcome = welcomeRef.current;
         if (welcome) {
-          const exit = Math.min(1, y / (window.innerHeight * 0.75));
+          const exit = Math.min(1, y / (vh * 0.75));
           welcome.style.opacity = String(1 - exit);
           welcome.style.transform = `translateY(${-y * 0.35}px)`;
         }
@@ -238,14 +242,16 @@ export default function MobilePage() {
 
   // Show "keep scrolling" only while on terminal section, hide once gallery is fully visible
   useEffect(() => {
-    const vh = window.innerHeight;
+    const sc = scrollerRef.current;
+    if (!sc) return;
     const handle = () => {
-      const y = window.scrollY;
-      setShowKeepScrolling(y > vh * 0.6 && y < vh * 1.8);
+      const vh = sc.clientHeight;
+      const y = sc.scrollTop;
+      setShowKeepScrolling(y > vh * 0.6 && y < vh * 1.4);
     };
-    window.addEventListener('scroll', handle, { passive: true });
+    sc.addEventListener('scroll', handle, { passive: true });
     handle();
-    return () => window.removeEventListener('scroll', handle);
+    return () => sc.removeEventListener('scroll', handle);
   }, []);
 
   // Auto-run help
@@ -286,25 +292,19 @@ export default function MobilePage() {
   });
 
   return (
-    <main style={{ position: 'relative' }}>
+    <main ref={scrollerRef} className="snap-scroller">
       {/* Golden-hour pixel world */}
       <PixelSky progressRef={progressRef} portrait />
 
       {/* Header: jump between sections */}
       <nav ref={navRef} className="site-nav site-nav-mobile" aria-label="Sections">
-        <button type="button" className="site-nav-home" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>✿ jadiha</button>
-        <button type="button" onClick={() => {
-          // Stop a little above the terminal so Jadiha and the cat stay in view
-          const el = document.getElementById('terminal');
-          if (el) window.scrollTo({ top: el.offsetTop - 12, behavior: 'smooth' });
-        }}>terminal</button>
+        <button type="button" className="site-nav-home" onClick={() => scrollerRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}>✿ jadiha</button>
+        <button type="button" onClick={() => document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' })}>terminal</button>
         <button type="button" onClick={() => document.getElementById('photos')?.scrollIntoView({ behavior: 'smooth' })}>photos</button>
       </nav>
 
       {/* ── Section 1: Welcome ───────────────────────────────────── */}
-      <section style={{
-        height: '100dvh',
-        minHeight: '100dvh',
+      <section className="snap-section" style={{
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         position: 'relative', zIndex: 10,
@@ -324,7 +324,7 @@ export default function MobilePage() {
           fontSize: '0.95rem',
           lineHeight: 2.2,
           color: '#FFFFFF',
-          textShadow: '0 0 10px rgba(255,214,150,0.95), 0 0 25px rgba(255,156,174,0.75), 0 0 60px rgba(255,120,160,0.5)',
+          textShadow: '2px 2px 0 #A8476F, 0 0 12px rgba(255,156,174,0.7)',
           marginBottom: '1rem',
         }}>
           Jadiha<br />Aruleswaran
@@ -337,30 +337,31 @@ export default function MobilePage() {
         <p className="welcome-tagline" style={{ fontSize: '0.75rem', margin: '0 auto 1rem', textAlign: 'center' }}>
           {TAGLINE}
         </p>
-        <p className="welcome-hint" style={{ fontSize: '0.75rem', textAlign: 'center' }}>
-          scroll to begin the journey ↓
-        </p>
+        <div className="welcome-quick welcome-quick-mobile">
+          <button type="button" onClick={() => { document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' }); runCommand('projects'); }}>projects</button>
+          <button type="button" onClick={() => { document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' }); runCommand('experience'); }}>experience</button>
+          <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf">resume ↓</a>
+        </div>
 
         </div>
 
       </section>
 
       {/* ── Section 2: Terminal ──────────────────────────────────── */}
-      <section id="terminal" style={{
-        minHeight: '100svh',
+      <section id="terminal" className="snap-section" style={{
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'flex-start',
         position: 'relative', zIndex: 10,
-        padding: '0.75rem',
-        paddingTop: '8svh',
+        // Top room for pixel Jadiha + the cat sitting on the terminal's edge
+        padding: '96px 0.75rem 0.5rem',
       }}>
-        <Reveal style={{ width: '100%' }}>
-        <div className="terminal-wrap">
+        <Reveal style={{ width: '100%', flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+        <div className="terminal-wrap" style={{ flex: 1, minHeight: 0 }}>
         <div className="terminal-buddies">
           <PixelMe />
           <PixelCat />
         </div>
-        <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '90svh', padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="terminal-window" style={{ width: '100%', maxWidth: '100%', height: '100%', padding: '0 1rem 1rem', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
           <TerminalTitleBar />
 
           {/* Name header */}
@@ -452,7 +453,8 @@ export default function MobilePage() {
 
         {/* Keep scrolling hint */}
         <div style={{
-          marginTop: '1rem',
+          marginTop: '0.5rem',
+          flexShrink: 0,
           textAlign: 'center',
           fontFamily: 'var(--font-press-start)',
           fontSize: '0.45rem',
@@ -468,8 +470,7 @@ export default function MobilePage() {
       </section>
 
       {/* ── Section 3: Gallery ───────────────────────────────────── */}
-      <section id="photos" style={{
-        minHeight: '100svh',
+      <section id="photos" className="snap-section" style={{
         display: 'flex', flexDirection: 'column',
         alignItems: 'center', justifyContent: 'center',
         position: 'relative', zIndex: 10,
@@ -588,7 +589,8 @@ export default function MobilePage() {
       )}
 
       <style>{`
-        html { background: #4F9A4A !important; }
+        html { background: #4F9A4A !important; overflow: hidden; }
+        body { overflow: hidden; }
         body { background: transparent !important; }
         @keyframes bounce {
           0%, 100% { transform: translateY(0); }

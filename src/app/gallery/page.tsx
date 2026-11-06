@@ -12,7 +12,7 @@ const GALLERY_IMAGES = [
   'DSC05871.JPG',
   'HackTheNorth.jpg',
   'IMG_6300.jpg',
-  'IMG-20240715-WA0005.jpg'
+  'EngineeringDay2026.jpg'
 ];
 
 export default function GalleryPage() {

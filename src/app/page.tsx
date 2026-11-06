@@ -53,7 +53,7 @@ const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
   { src: 'OrientationSpirit.jpg', title: 'Black and Gold Day 2022' },
   { src: 'DSC00227.JPG', title: 'Women in Engineering Kick Off 2024' },
   { src: 'Volleyball.jpg', title: 'Wealthsimple Beach Volleyball 2025' },
-  { src: 'IMG-20240715-WA0005.jpg', title: 'Engineering Day 2024' }
+  { src: 'EngineeringDay2026.jpg', title: 'Engineering Day 2026' }
 ];
 
 
@@ -488,6 +488,16 @@ export default function Home() {
             >
               {TAGLINE}
             </motion.p>
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 1.2 }}
+              className="welcome-quick"
+            >
+              <button type="button" onClick={() => { goTo(100); runCommand('projects'); }}>projects</button>
+              <button type="button" onClick={() => { goTo(100); runCommand('experience'); }}>experience</button>
+              <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf">resume ↓</a>
+            </motion.div>
             <motion.p
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
