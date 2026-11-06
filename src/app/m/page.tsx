@@ -23,7 +23,7 @@ const GALLERY_IMAGES: { src?: string; title: string; video?: boolean }[] = [
   { src: 'EngineeringDay2026.jpg', title: 'Engineering Day 2026' },
   { src: 'OrientationWeek.jpeg', title: 'Orientation Week Leaders 2025' },
   { src: 'Volleyball.jpg',       title: 'Wealthsimple Beach Volleyball 2025' },
-  { video: true, title: "JD's World · watch on YouTube" },
+  { video: true, title: "Grand River Rafting 2026" },
   { src: 'DSC00227.JPG',         title: 'Women in Engineering Kick Off 2024' },
   { src: 'Ambassadors.jpeg',     title: 'Engineering Ambassadors 2024' },
   { src: 'DSC03005.jpg',         title: 'Acapella 2023' },

@@ -1552,6 +1552,19 @@ a:hover::before {
   display: block;
 }
 
+.creator-clip-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.9);
+  color: #C93D74;
+  font-family: var(--font-press-start);
+  font-size: 0.45rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .creator-clip-play {
   position: absolute;
   top: 50%;
