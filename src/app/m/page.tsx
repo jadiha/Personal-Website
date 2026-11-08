@@ -338,11 +338,6 @@ export default function MobilePage() {
         <p className="welcome-tagline" style={{ fontSize: '0.75rem', margin: '0 auto 1rem', textAlign: 'center' }}>
           {TAGLINE}
         </p>
-        <div className="welcome-quick welcome-quick-mobile">
-          <button type="button" onClick={() => { document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' }); runCommand('projects'); }}>projects</button>
-          <button type="button" onClick={() => { document.getElementById('terminal')?.scrollIntoView({ behavior: 'smooth' }); runCommand('experience'); }}>experience</button>
-          <a href="/resume.pdf" download="Jadiha_Aruleswaran_Resume.pdf">resume ↓</a>
-        </div>
 
         </div>
 

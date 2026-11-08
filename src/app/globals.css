@@ -971,53 +971,6 @@ a:hover::before {
 }
 
 /* Quick links so visitors can reach the work without exploring first */
-.welcome-quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-  margin-bottom: 1.2rem;
-}
-
-.welcome-quick button,
-.welcome-quick a {
-  font-family: var(--font-press-start);
-  font-size: 0.6rem;
-  letter-spacing: 0.04em;
-  color: #5E2342;
-  background: #FFFAF2;
-  border: 2px solid #A8476F;
-  border-radius: 6px;
-  padding: 0.7rem 0.9rem;
-  box-shadow: 3px 3px 0 #A8476F;
-  cursor: pointer;
-  text-decoration: none;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.welcome-quick button:hover,
-.welcome-quick a:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0 #A8476F;
-}
-
-.welcome-quick button:active,
-.welcome-quick a:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 #A8476F;
-}
-
-.welcome-quick-mobile {
-  justify-content: center;
-  gap: 0.45rem;
-  margin-bottom: 0.9rem;
-}
-
-.welcome-quick-mobile button,
-.welcome-quick-mobile a {
-  font-size: 0.48rem;
-  padding: 0.6rem 0.65rem;
-}
-
 /* ── Header nav: jump between welcome, photos and terminal ──────────────── */
 .site-nav {
   position: fixed;
